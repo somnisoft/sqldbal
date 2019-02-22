@@ -758,6 +758,13 @@ sqldbal_err_set(struct sqldbal_db *const db,
 
 #include <mysql.h>
 
+#if MYSQL_VERSION_ID >= 50600
+/**
+ * MariaDB did not add the MYSQL_OPT_SSL_* options until version 5.6.
+ */
+# define SQLDBAL_MARIADB_HAS_SSL
+#endif /* MYSQL_VERSION_ID >= 50600 */
+
 /**
  * Maximum number of seconds allowed in the CONNECT_TIMEOUT option.
  */
@@ -881,6 +888,7 @@ sqldbal_mariadb_set_options(struct sqldbal_db *const db,
                                       (void*)&timeout);
       }
     }
+#ifdef SQLDBAL_MARIADB_HAS_SSL
     else if(strcmp(option->key, "TLS_KEY") == 0){
       sqldbal_mariadb_mysql_options(db, MYSQL_OPT_SSL_KEY, option->value);
     }
@@ -896,6 +904,7 @@ sqldbal_mariadb_set_options(struct sqldbal_db *const db,
     else if(strcmp(option->key, "TLS_CIPHER") == 0){
       sqldbal_mariadb_mysql_options(db, MYSQL_OPT_SSL_CIPHER, option->value);
     }
+#endif /* SQLDBAL_MARIADB_HAS_SSL */
     else{
       sqldbal_status_code_set(db, SQLDBAL_STATUS_PARAM);
     }
@@ -1704,7 +1713,11 @@ sqldbal_mariadb_stmt_close(struct sqldbal_stmt *const stmt){
 #include <pg_config.h>
 
 #if PG_VERSION_NUM >= 90600
-# define PQ_HAS_ERROR_CONTEXT_VISIBILITY
+/**
+ * PostgreSQL did not add the PQsetErrorContextVisibility function until
+ * version 9.6.
+ */
+# define SQLDBAL_PQ_HAS_ERROR_CONTEXT_VISIBILITY
 #endif /* PG_VERSION_NUM >= 90600 */
 
 /**
@@ -2322,9 +2335,9 @@ sqldbal_pq_open(struct sqldbal_db *const db,
         else{
           if(db->flags & SQLDBAL_FLAG_DEBUG){
             PQsetErrorVerbosity(pq_db->db, PQERRORS_VERBOSE);
-#ifdef PQ_HAS_ERROR_CONTEXT_VISIBILITY
+#ifdef SQLDBAL_PQ_HAS_ERROR_CONTEXT_VISIBILITY
             PQsetErrorContextVisibility(pq_db->db, PQSHOW_CONTEXT_ALWAYS);
-#endif /* PQ_HAS_ERROR_CONTEXT_VISIBILITY */
+#endif /* SQLDBAL_PQ_HAS_ERROR_CONTEXT_VISIBILITY */
             PQtrace(pq_db->db, stderr);
           }
 
