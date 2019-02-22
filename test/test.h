@@ -84,10 +84,6 @@ int
 si_int64_to_uint64(const int64_t i64,
                    uint64_t *const ui64);
 
-int
-si_size_to_uint64(const size_t size,
-                  uint64_t *const ui64);
-
 char *
 sqldbal_stpcpy(char *s1,
                const char *s2);
@@ -227,11 +223,11 @@ sqldbal_test_seam_strtoul(const char *str,
                           char **endptr,
                           int base);
 int
-sqldbal_test_seam_sqlite3_bind_blob64(sqlite3_stmt *stmt,
-                                      int index,
-                                      const void *value,
-                                      sqlite3_uint64 nbytes,
-                                      void (*destructor)(void *ptr));
+sqldbal_test_seam_sqlite3_bind_blob(sqlite3_stmt *stmt,
+                                    int index,
+                                    const void *value,
+                                    int nbytes,
+                                    void (*destructor)(void *ptr));
 
 int
 sqldbal_test_seam_sqlite3_bind_int64(sqlite3_stmt *stmt,
@@ -532,13 +528,6 @@ extern int g_sqldbal_err_si_llong_to_int64_ctr;
 extern int g_sqldbal_err_si_int64_to_uint64_ctr;
 
 /**
- * Counter for @ref si_size_to_uint64.
- *
- * See @ref test_seams_countdown_global for more details.
- */
-extern int g_sqldbal_err_si_size_to_uint64_ctr;
-
-/**
  * Counter for @ref sqldbal_test_seam_sprintf.
  *
  * See @ref test_seams_countdown_global for more details.
@@ -581,11 +570,11 @@ extern long long int g_sqldbal_err_strtoll_value;
 extern int g_sqldbal_err_strtoul_ctr;
 
 /**
- * Counter for @ref sqldbal_test_seam_sqlite3_bind_blob64.
+ * Counter for @ref sqldbal_test_seam_sqlite3_bind_blob.
  *
  * See @ref test_seams_countdown_global for more details.
  */
-extern int g_sqldbal_err_sqlite3_bind_blob64_ctr;
+extern int g_sqldbal_err_sqlite3_bind_blob_ctr;
 
 /**
  * Counter for @ref sqldbal_test_seam_sqlite3_bind_int64.

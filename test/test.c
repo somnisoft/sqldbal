@@ -456,27 +456,6 @@ sqldbal_unit_test_si_int64_to_uint64(const int64_t i64,
 }
 
 /**
- * Test harness for @ref si_size_to_uint64.
- *
- * @param[in] size          Value to convert.
- * @param[in] expect_result Expected converted value.
- * @param[in] expect_wrap   Expected wrap result.
- */
-static void
-sqldbal_unit_test_si_size_to_uint64(const size_t size,
-                                    uint64_t expect_result,
-                                    int expect_wrap){
-  int wrap;
-  uint64_t result;
-
-  wrap = si_size_to_uint64(size, &result);
-  assert(wrap == expect_wrap);
-  if(!wrap){
-    assert(result == expect_result);
-  }
-}
-
-/**
  * Run all test cases for integer wrapping and conversions.
  */
 static void
@@ -545,13 +524,6 @@ sqldbal_unit_test_all_si(void){
   sqldbal_unit_test_si_int64_to_uint64(10, 10, 0);
   sqldbal_unit_test_si_int64_to_uint64(INT64_MAX, INT64_MAX, 0);
   sqldbal_unit_test_si_int64_to_uint64(-1, UINT64_MAX, 1);
-
-  /* convert size_t to uint64_t */
-  sqldbal_unit_test_si_size_to_uint64(0, 0, 0);
-  sqldbal_unit_test_si_size_to_uint64(SIZE_MAX, SIZE_MAX, 0);
-  g_sqldbal_err_si_size_to_uint64_ctr = 0;
-  sqldbal_unit_test_si_size_to_uint64(0, 0, 1);
-  g_sqldbal_err_si_size_to_uint64_ctr = -1;
 }
 
 /**
@@ -3361,15 +3333,7 @@ sqldbal_test_all_error_stmt_bind(void){
 
   /* sqldbal_sqlite_stmt_bind_blob */
 
-  /* si_size_to_uint64 */
-  sqldbal_test_stmt_prepare_sql();
-  g_sqldbal_err_si_size_to_uint64_ctr = 0;
-  sqldbal_test_bind_blob(0, SQLDBAL_STATUS_OVERFLOW);
-  g_sqldbal_err_si_size_to_uint64_ctr = -1;
-  sqldbal_status_code_clear(g_db);
-  sqldbal_test_stmt_close_sql();
-
-  /* si_size_to_int */
+  /* si_size_to_int - 1*/
   sqldbal_test_stmt_prepare_sql();
   g_sqldbal_err_si_size_to_int_ctr = 0;
   sqldbal_test_bind_blob(0, SQLDBAL_STATUS_OVERFLOW);
@@ -3377,11 +3341,19 @@ sqldbal_test_all_error_stmt_bind(void){
   sqldbal_status_code_clear(g_db);
   sqldbal_test_stmt_close_sql();
 
-  /* sqlite3_bind_blob64 */
+  /* si_size_to_int - 2 */
   sqldbal_test_stmt_prepare_sql();
-  g_sqldbal_err_sqlite3_bind_blob64_ctr = 0;
+  g_sqldbal_err_si_size_to_int_ctr = 1;
+  sqldbal_test_bind_blob(0, SQLDBAL_STATUS_OVERFLOW);
+  g_sqldbal_err_si_size_to_int_ctr = -1;
+  sqldbal_status_code_clear(g_db);
+  sqldbal_test_stmt_close_sql();
+
+  /* sqlite3_bind_blob */
+  sqldbal_test_stmt_prepare_sql();
+  g_sqldbal_err_sqlite3_bind_blob_ctr = 0;
   sqldbal_test_bind_blob(0, SQLDBAL_STATUS_BIND);
-  g_sqldbal_err_sqlite3_bind_blob64_ctr = -1;
+  g_sqldbal_err_sqlite3_bind_blob_ctr = -1;
   sqldbal_status_code_clear(g_db);
   sqldbal_test_stmt_close_sql();
 

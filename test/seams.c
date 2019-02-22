@@ -205,12 +205,6 @@ int g_sqldbal_err_si_llong_to_int64_ctr = -1;
 int g_sqldbal_err_si_int64_to_uint64_ctr = -1;
 
 /**
- * See @ref g_sqldbal_err_si_size_to_uint64_ctr and
- * @ref test_seams_countdown_global.
- */
-int g_sqldbal_err_si_size_to_uint64_ctr = -1;
-
-/**
  * See @ref g_sqldbal_err_sprintf_ctr and
  * @ref test_seams_countdown_global.
  */
@@ -242,10 +236,10 @@ int g_sqldbal_err_strtoul_ctr = -1;
 size_t g_sqldbal_err_strlen_ret_value = 0;
 
 /**
- * See @ref g_sqldbal_err_sqlite3_bind_blob64_ctr and
+ * See @ref g_sqldbal_err_sqlite3_bind_blob_ctr and
  * @ref test_seams_countdown_global.
  */
-int g_sqldbal_err_sqlite3_bind_blob64_ctr = -1;
+int g_sqldbal_err_sqlite3_bind_blob_ctr = -1;
 
 /**
  * See @ref g_sqldbal_err_sqlite3_bind_int64_ctr and
@@ -995,7 +989,7 @@ sqldbal_test_seam_strtoul(const char *str,
 }
 
 /**
- * Allows the test harness to control when sqlite3_bind_blob64() fails.
+ * Allows the test harness to control when sqlite3_bind_blob() fails.
  *
  * @param[in] stmt       SQLite statement handle.
  * @param[in] index      Column index.
@@ -1005,18 +999,18 @@ sqldbal_test_seam_strtoul(const char *str,
  * @return SQLite status code.
  */
 int
-sqldbal_test_seam_sqlite3_bind_blob64(sqlite3_stmt *stmt,
-                                      int index,
-                                      const void *value,
-                                      sqlite3_uint64 nbytes,
-                                      void (*destructor)(void *ptr)){
+sqldbal_test_seam_sqlite3_bind_blob(sqlite3_stmt *stmt,
+                                    int index,
+                                    const void *value,
+                                    int nbytes,
+                                    void (*destructor)(void *ptr)){
   int rc;
 
-  if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_sqlite3_bind_blob64_ctr)){
+  if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_sqlite3_bind_blob_ctr)){
     rc = SQLITE_NOMEM;
   }
   else{
-    rc = sqlite3_bind_blob64(stmt, index, value, nbytes, destructor);
+    rc = sqlite3_bind_blob(stmt, index, value, nbytes, destructor);
   }
   return rc;
 }

@@ -49,7 +49,7 @@
 #undef strlen
 #undef strtoll
 #undef strtoul
-#undef sqlite3_bind_blob64
+#undef sqlite3_bind_blob
 #undef sqlite3_bind_int64
 #undef sqlite3_bind_text
 #undef sqlite3_bind_null
@@ -232,10 +232,10 @@
 #define strtoul                    sqldbal_test_seam_strtoul
 
 /**
- * Inject a test seam on calls to sqlite3_bind_blob64() that can control
+ * Inject a test seam on calls to sqlite3_bind_blob() that can control
  * when this function fails.
  */
-#define sqlite3_bind_blob64        sqldbal_test_seam_sqlite3_bind_blob64
+#define sqlite3_bind_blob          sqldbal_test_seam_sqlite3_bind_blob
 
 /**
  * Inject a test seam on calls to sqlite3_bind_int64() that can control

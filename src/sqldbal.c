@@ -522,38 +522,6 @@ si_int64_to_uint64(const int64_t i64,
 }
 #endif /* SQLDBAL_POSTGRESQL || SQLDBAL_SQLITE */
 
-#ifdef SQLDBAL_SQLITE
-/**
- * Convert a size_t to a 64 bit unsigned integer unless the value
- * would wrap.
- *
- * @param[in]  size Convert this to uint64_t and store result in @p ui64.
- * @param[out] ui64 Converted from @p size.
- * @retval 1 Value would have wrapped.
- * @retval 0 Value converted.
- */
-SQLDBAL_LINKAGE int
-si_size_to_uint64(const size_t size,
-                  uint64_t *const ui64){
-  int wraps;
-
-#ifdef SQLDBAL_TEST
-  if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_si_size_to_uint64_ctr)){
-    return 1;
-  }
-#endif /* SQLDBAL_TEST */
-
-  if(size > UINT64_MAX){
-    wraps = 1;
-  }
-  else{
-    wraps = 0;
-    *ui64 = size;
-  }
-  return wraps;
-}
-#endif /* SQLDBAL_SQLITE */
-
 /**
  * Reallocate memory array.
  *
@@ -3705,23 +3673,22 @@ sqldbal_sqlite_stmt_bind_blob(struct sqldbal_stmt *const stmt,
                               const void *const blob,
                               size_t blobsz){
   sqlite3_stmt *sqlite_stmt;
-  uint64_t blobsz_ui64;
+  int blobsz_int;
   int col_idx_i;
 
-  if(si_size_to_uint64(blobsz, &blobsz_ui64) ||
+  if(si_size_to_int(blobsz, &blobsz_int) ||
      sqldbal_sqlite_get_col_idx(col_idx, &col_idx_i)){
     sqldbal_status_code_set(stmt->db, SQLDBAL_STATUS_OVERFLOW);
   }
   else{
     sqlite_stmt = stmt->handle;
-    blobsz_ui64 = blobsz;
 
     /* https://www.sqlite.org/c3ref/bind_blob.html */
-    if(sqlite3_bind_blob64(sqlite_stmt,
-                           col_idx_i,
-                           blob,
-                           blobsz_ui64,
-                           SQLITE_TRANSIENT) != SQLITE_OK){
+    if(sqlite3_bind_blob(sqlite_stmt,
+                         col_idx_i,
+                         blob,
+                         blobsz_int,
+                         SQLITE_TRANSIENT) != SQLITE_OK){
       sqldbal_sqlite_error(stmt->db, 0, SQLDBAL_STATUS_BIND);
     }
   }
