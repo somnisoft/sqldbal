@@ -1701,6 +1701,11 @@ sqldbal_mariadb_stmt_close(struct sqldbal_stmt *const stmt){
 #ifdef SQLDBAL_POSTGRESQL
 
 #include <libpq-fe.h>
+#include <pg_config.h>
+
+#if PG_VERSION_NUM >= 90600
+# define PQ_HAS_ERROR_CONTEXT_VISIBILITY
+#endif /* PG_VERSION_NUM >= 90600 */
 
 /**
  * Oid to data type mapping table.
@@ -2317,7 +2322,9 @@ sqldbal_pq_open(struct sqldbal_db *const db,
         else{
           if(db->flags & SQLDBAL_FLAG_DEBUG){
             PQsetErrorVerbosity(pq_db->db, PQERRORS_VERBOSE);
+#ifdef PQ_HAS_ERROR_CONTEXT_VISIBILITY
             PQsetErrorContextVisibility(pq_db->db, PQSHOW_CONTEXT_ALWAYS);
+#endif /* PQ_HAS_ERROR_CONTEXT_VISIBILITY */
             PQtrace(pq_db->db, stderr);
           }
 
