@@ -372,6 +372,27 @@ sqldbal_unit_test_si_int64_to_llong(const int64_t i64,
 }
 
 /**
+ * Test harness for @ref si_ulong_to_size.
+ *
+ * @param[in] ul            Value to convert.
+ * @param[in] expect_result Expected converted value.
+ * @param[in] expect_wrap   Expected wrap result.
+ */
+static void
+sqldbal_unit_test_si_ulong_to_size(const unsigned long ul,
+                                   size_t expect_result,
+                                   int expect_wrap){
+  int wrap;
+  size_t result;
+
+  wrap = si_ulong_to_size(ul, &result);
+  assert(wrap == expect_wrap);
+  if(!wrap){
+    assert(result == expect_result);
+  }
+}
+
+/**
  * Test harness for @ref si_llong_to_int64.
  *
  * @param[in] lli             Value to convert.
@@ -497,6 +518,13 @@ sqldbal_unit_test_all_si(void){
   g_sqldbal_err_si_int64_to_llong_ctr = 0;
   sqldbal_unit_test_si_int64_to_llong(0, 0, 1);
   g_sqldbal_err_si_int64_to_llong_ctr = -1;
+
+  /* convert unsigned long to size_t */
+  sqldbal_unit_test_si_ulong_to_size(0, 0, 0);
+  sqldbal_unit_test_si_ulong_to_size(10, 10, 0);
+  g_sqldbal_err_si_ulong_to_size_ctr = 0;
+  sqldbal_unit_test_si_ulong_to_size(0, 0, 1);
+  g_sqldbal_err_si_ulong_to_size_ctr = -1;
 
   /* convert long long to int64_t */
   sqldbal_unit_test_si_llong_to_int64(0, 0, 0);
@@ -2467,6 +2495,24 @@ sqldbal_test_all_error_exec(void){
                     NULL,
                     NULL,
                     SQLDBAL_STATUS_EXEC);
+
+  /* sqldbal_reallocarray */
+  g_sqldbal_err_realloc_ctr = 0;
+  sqldbal_test_exec(SQLDBAL_DRIVER_MARIADB,
+                    g_sql_valid_sel,
+                    sqldbal_test_exec_do_nothing_fp,
+                    NULL,
+                    SQLDBAL_STATUS_NOMEM);
+  g_sqldbal_err_realloc_ctr = -1;
+
+  /* sqldbal_mariadb_fetch_lengths_conv_size - si_ulong_to_size */
+  g_sqldbal_err_si_ulong_to_size_ctr = 0;
+  sqldbal_test_exec(SQLDBAL_DRIVER_MARIADB,
+                    g_sql_valid_sel,
+                    sqldbal_test_exec_do_nothing_fp,
+                    NULL,
+                    SQLDBAL_STATUS_OVERFLOW);
+  g_sqldbal_err_si_ulong_to_size_ctr = -1;
 
   /* callback */
   sqldbal_test_exec(SQLDBAL_DRIVER_MARIADB,

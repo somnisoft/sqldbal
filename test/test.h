@@ -69,6 +69,10 @@ si_int64_to_llong(const int64_t i64,
                   long long *ll);
 
 int
+si_ulong_to_size(unsigned long ul,
+                 size_t *const size);
+
+int
 si_llong_to_int64(const long long int lli,
                   int64_t *i64);
 
@@ -512,6 +516,13 @@ extern int g_sqldbal_err_si_size_to_uint_ctr;
  * See @ref test_seams_countdown_global for more details.
  */
 extern int g_sqldbal_err_si_int64_to_llong_ctr;
+
+/**
+ * Counter for @ref si_ulong_to_size.
+ *
+ * See @ref test_seams_countdown_global for more details.
+ */
+extern int g_sqldbal_err_si_ulong_to_size_ctr;
 
 /**
  * Counter for @ref si_llong_to_int64.

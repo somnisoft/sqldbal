@@ -430,6 +430,35 @@ si_int64_to_llong(const int64_t i64,
   }
   return overflow;
 }
+
+/**
+ * Convert an unsigned long to size_t unless the value would wrap.
+ *
+ * @param[in]  ul   Convert this to size_t and store result in @p size.
+ * @param[out] size Converted from @p ul.
+ * @retval 1 Value would have wrapped.
+ * @retval 0 Value converted.
+ */
+SQLDBAL_LINKAGE int
+si_ulong_to_size(unsigned long ul,
+                 size_t *const size){
+  int wraps;
+
+#ifdef SQLDBAL_TEST
+  if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_si_ulong_to_size_ctr)){
+    return 1;
+  }
+#endif /* SQLDBAL_TEST */
+
+  if(ul > SIZE_MAX){
+    wraps = 1;
+  }
+  else{
+    wraps = 0;
+    *size = (size_t)ul;
+  }
+  return wraps;
+}
 #endif /* SQLDBAL_MARIADB */
 
 #if defined(SQLDBAL_POSTGRESQL) || defined(SQLDBAL_SQLITE)
@@ -1046,6 +1075,36 @@ sqldbal_mariadb_rollback(struct sqldbal_db *const db){
 }
 
 /**
+ * Convert unsigned long values returned by mysql_fetch_lengths() into
+ * a size_t list while checking for wrapping.
+ *
+ * @param[in]  lengths         List of unsigned long values to convert
+ *                             to size_t.
+ * @param[out] col_length_list Store the converted values in this list.
+ * @param[in]  num_fields      Number of entries in @p lengths.
+ * @retval 0 All length values converted to a size_t.
+ * @retval 1 At least one length value did not fit into a size_t.
+ */
+static int
+sqldbal_mariadb_fetch_lengths_conv_size(const unsigned long *const lengths,
+                                        size_t *const col_length_list,
+                                        unsigned int num_fields){
+  unsigned int i;
+  int rc;
+  size_t size_conv;
+
+  rc = 0;
+  for(i = 0; i < num_fields; i++){
+    if(si_ulong_to_size(lengths[i], &size_conv)){
+      rc = 1;
+      break;
+    }
+    col_length_list[i] = size_conv;
+  }
+  return rc;
+}
+
+/**
  * Execute a direct SQL statement.
  *
  * @param[in] db        See @ref sqldbal_db.
@@ -1068,6 +1127,7 @@ sqldbal_mariadb_exec(struct sqldbal_db *const db,
   size_t num_rows;
   size_t i;
   unsigned long *lengths;
+  size_t *col_length_list;
 
   mysql_db = db->handle;
 
@@ -1082,17 +1142,35 @@ sqldbal_mariadb_exec(struct sqldbal_db *const db,
       if(callback){
         /* https://mariadb.com/kb/en/mysql_num_fields */
         num_fields = mysql_num_fields(result);
-        /* https://mariadb.com/kb/en/mysql_num_rows */
-        num_rows = mysql_num_rows(result);
-        for(i = 0; i < num_rows; i++){
-          /* https://mariadb.com/kb/en/mysql_fetch_row */
-          row = mysql_fetch_row(result);
-          /* https://mariadb.com/kb/en/mysql_fetch_lengths */
-          lengths = mysql_fetch_lengths(result);
-          if(callback(user_data, num_fields, row, lengths)){
-            sqldbal_status_code_set(db, SQLDBAL_STATUS_EXEC);
-            break;
+
+        col_length_list = sqldbal_reallocarray(NULL,
+                                               num_fields,
+                                               sizeof(*col_length_list));
+        if(col_length_list == NULL){
+          sqldbal_status_code_set(db, SQLDBAL_STATUS_NOMEM);
+        }
+        else{
+          /* https://mariadb.com/kb/en/mysql_num_rows */
+          num_rows = mysql_num_rows(result);
+          for(i = 0; i < num_rows; i++){
+            /* https://mariadb.com/kb/en/mysql_fetch_row */
+            row = mysql_fetch_row(result);
+            /* https://mariadb.com/kb/en/mysql_fetch_lengths */
+            lengths = mysql_fetch_lengths(result);
+            if(sqldbal_mariadb_fetch_lengths_conv_size(lengths, col_length_list, num_fields)){
+              sqldbal_status_code_set(db, SQLDBAL_STATUS_OVERFLOW);
+            }
+            else{
+              if(callback(user_data,
+                          num_fields,
+                          row,
+                          col_length_list)){
+                sqldbal_status_code_set(db, SQLDBAL_STATUS_EXEC);
+                break;
+              }
+            }
           }
+          free(col_length_list);
         }
       }
       /* https://mariadb.com/kb/en/mysql_free_result */
@@ -2452,7 +2530,7 @@ sqldbal_pq_exec(struct sqldbal_db *const db,
   int pq_column_number_i;
   char *col_value;
   int pq_length;
-  unsigned long col_length;
+  size_t col_length;
   int mem_allocated;
   size_t binlen;
   char **col_result_list;

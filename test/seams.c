@@ -193,6 +193,12 @@ int g_sqldbal_err_si_size_to_uint_ctr = -1;
 int g_sqldbal_err_si_int64_to_llong_ctr = -1;
 
 /**
+ * See @ref g_sqldbal_err_si_ulong_to_size_ctr and
+ * @ref test_seams_countdown_global.
+ */
+int g_sqldbal_err_si_ulong_to_size_ctr = -1;
+
+/**
  * See @ref g_sqldbal_err_si_llong_to_int64_ctr and
  * @ref test_seams_countdown_global.
  */
