@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "sqldbal.h"
 #define DRIVER     SQLDBAL_DRIVER_SQLITE
-#define LOCATION   "/tmp/example.db"
+#define LOCATION   "example.db"
 #define PORT       NULL
 #define USERNAME   NULL
 #define PASSWORD   NULL
