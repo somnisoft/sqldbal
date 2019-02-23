@@ -21,7 +21,17 @@
  * www.somnisoft.com/sqldbal
  * </a>.
  */
-#include <sys/select.h>
+
+#if defined(_WIN32) || defined(WIN32)
+# define SQLDBAL_IS_WINDOWS
+#endif /* SQLDBAL_IS_WINDOWS */
+
+#ifdef SQLDBAL_IS_WINDOWS
+# include <winsock2.h>
+#else /* POSIX */
+# include <sys/select.h>
+#endif /* SQLDBAL_IS_WINDOWS */
+
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>

@@ -6,6 +6,7 @@ database system.
 
 ## Feature List
 * Single C and header file
+* Cross-platform (POSIX, BSD, Windows)
 * Simple API that handles most common database operations
   (driver-specific database/statement handles available if needed)
 * Test cases with 100% code and branch coverage
@@ -33,7 +34,7 @@ inserts a record, and then reads back the inserted records.
 #include <stdio.h>
 #include "sqldbal.h"
 #define DRIVER     SQLDBAL_DRIVER_SQLITE
-#define LOCATION   "/tmp/example.db"
+#define LOCATION   "example.db"
 #define PORT       NULL
 #define USERNAME   NULL
 #define PASSWORD   NULL
