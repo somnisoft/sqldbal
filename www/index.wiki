@@ -1,0 +1,46 @@
+# SQLDBAL - SQL Database Abstraction Library
+SQL database abstraction library written in C which can get included
+directly into another program. Each driver has been implemented
+using the client connector library provided by the corresponding
+database system.
+
+## Feature List
+* Single C and header file
+* Cross-platform (POSIX, BSD, Windows)
+* Simple API that handles most common database operations
+  (driver-specific database/statement handles available if needed)
+* Test cases with 100% code and branch coverage
+* Doxygen with 100% documentation
+* Free software (permissive - CC0)
+
+Supports the following database engines:
+* MariaDB/mySQL (requires libmariadbclient or libmysqlclient)
+* PostgreSQL (requires libpq)
+* SQLite (requires libsqlite3)
+
+To include the library into your application, simply copy the src/sqldbal.h
+and src/sqldbal.c files into your project directory. Then include the
+sqldbal.h header into your C file, compile sqldbal.c, and include the
+resulting object file into the build system.
+
+## Examples
+Place the src/example.c, src/sqldbal.c, and src/sqldbal.h file into the
+same directory. In the example file, change each #define to the appropriate
+values for your database. Then run the following commands to
+compile with support for all databases.
+
+cc -DSQLDBAL_MARIADB -DSQLDBAL_POSTGRESQL -DSQLDBAL_SQLITE sqldbal.c -c -o sqldbal.o
+
+cc -DSQLDBAL_MARIADB -DSQLDBAL_POSTGRESQL -DSQLDBAL_SQLITE example.c -c -o example.o
+
+cc example.o sqldbal.o -o sqldbal_test -lsqlite3 -lpq -lmariadbclient
+
+Remove the corresponding -D and -l arguments for the database drivers that
+you do not need to use. The commands as above should create an
+executable called 'sqldbal_test'.
+
+## Technical Documentation
+See the
+[Technical Documentation](https://www.somnisoft.com/sqldbal/technical-documentation/index.html)
+generated from Doxygen.
+
