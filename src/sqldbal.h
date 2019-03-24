@@ -296,7 +296,7 @@ enum sqldbal_status_code
 sqldbal_status_code_get(const struct sqldbal_db *const db);
 
 /**
- * Clear the error code in the database handle.
+ * Clear the error code set in the database handle.
  *
  * @param[in] db See @ref sqldbal_db.
  * @return       Previous error code before clearing.
@@ -326,35 +326,51 @@ sqldbal_errstr(const struct sqldbal_db *const db,
                const char **errstr);
 
 /**
- * Open connection with database.
+ * Open a new connection to the database.
  *
- * Driver-specific details:
+ * If successful, this will return a valid database context in @p db.
+ * Applications must call @ref sqldbal_close after finished with its
+ * database operations.
  *
  * MariaDB/MySQL
- *
- * Supports the following options in @p option_list:
- *   - CONNECT_TIMEOUT
- *   - TLS_KEY
- *   - TLS_CERT
- *   - TLS_CA
- *   - TLS_CAPATH
- *   - TLS_CIPHER
+ * =============
+ * Supports the following options in @p option_list. Review the
+ * mysql_optionsv documentation for more information on the meaning of each
+ * parameter.
+ *   - CONNECT_TIMEOUT (MYSQL_OPT_CONNECT_TIMEOUT - timeout in seconds       )
+ *   - TLS_KEY         (MYSQL_OPT_SSL_KEY         - path to private key file )
+ *   - TLS_CERT        (MYSQL_OPT_SSL_CERT        - path to certificate file )
+ *   - TLS_CA          (MYSQL_OPT_SSL_CA          - path to CA file          )
+ *   - TLS_CAPATH      (MYSQL_OPT_SSL_CAPATH      - path directory CA files  )
+ *   - TLS_CIPHER      (MYSQL_OPT_SSL_CIPHER      - list of permitted ciphers)
  *
  * PostgreSQL
+ * ==========
+ * Supports the following options in @p option_list. Review the
+ * PQconnectdb documentation for more information on the meaning of each
+ * parameter.
+ *   - CONNECT_TIMEOUT (connect_timeout - timeout in seconds      )
+ *   - TLS_MODE        (sslmode         - see below               )
+ *   - TLS_CERT        (sslcert         - path to certificate file)
+ *   - TLS_KEY         (sslkey          - path to private key file)
+ *   - TLS_CA          (sslrootcert     - path to CA file         )
  *
- * Supports the following options (pq option name) in @p option_list:
- *   - CONNECT_TIMEOUT (connect_timeout)
- *   - TLS_MODE        (sslmode)
- *   - TLS_CERT        (sslcert)
- *   - TLS_KEY         (sslkey)
- *   - TLS_CA          (sslrootcert)
+ * The TLS_MODE parameter for PostgreSQL can have one of the following values:
+ *   - disable     - Use unencrypted connection.
+ *   - allow       - Use unencrypted if available, otherwise use encrypted.
+ *   - prefer      - Use TLS if available, otherwise use unencrypted.
+ *   - require     - Use TLS and verify certificate issued by trusted CA if
+ *                   a CA file has been provided.
+ *   - verify-ca   - Use TLS and verify certificate issued by trusted CA.
+ *   - verify-full - Use TLS and verify certificate issued by trusted CA. Also
+ *                   check host name matches the name in the certificate.
  *
  * SQLite
- *
- * File path provided in the @p location parameter.
+ * ======
+ * Provide the file path in the @p location parameter.
  * Ignores the @p port, @p username, @p password, and @p database parameters.
  * Supports the following options in @p option_list:
- *   - VFS
+ *   - VFS (Name of Virtual File System to use)
  *
  * @param[in]  driver      See @ref sqldbal_driver.
  * @param[in]  location    File path, host name, or IP address.
@@ -383,7 +399,7 @@ sqldbal_open(enum sqldbal_driver driver,
              struct sqldbal_db **db);
 
 /**
- * Close the database handle.
+ * Close the database handle previously opened by @ref sqldbal_open.
  *
  * @param[in] db See @ref sqldbal_db.
  * @return       See @ref sqldbal_status_code.
@@ -418,7 +434,7 @@ sqldbal_db_handle(const struct sqldbal_db *const db);
  *
  * The returned type will need to get cast based on the driver type:
  *   - MariaDB   : MYSQL_STMT *
- *   - PostgreSQL: char *
+ *   - PostgreSQL: const char *
  *   - SQLite    : sqlite3_stmt *
  *
  * @param[in] stmt See @ref sqldbal_stmt.
@@ -458,14 +474,14 @@ sqldbal_rollback(struct sqldbal_db *const db);
 /**
  * Execute a SQL query directly without preparing statements.
  *
- * Calls the @p callback function for each row in the result set.
+ * Invokes the application @p callback function for each row in the result set.
  *
  * @param[in] db        See @ref sqldbal_db.
  * @param[in] sql       SQL query to execute.
- * @param[in] callback  Function invoked for each result row. The application
+ * @param[in] callback  Function called for each result row. The application
  *                      can set this to NULL if it does not need to process
  *                      the results.
- * @param[in] user_data Data to send to @p callback.
+ * @param[in] user_data Application data to send to @p callback.
  * @return              See @ref sqldbal_status_code.
  */
 enum sqldbal_status_code
@@ -495,11 +511,12 @@ sqldbal_last_insert_id(struct sqldbal_db *const db,
                        uint64_t *insert_id);
 
 /**
- * Compile SQL query and return a statement handle.
+ * Compile a SQL query and return a statement handle.
  *
  * @param[in]  db      See @ref sqldbal_db.
- * @param[in]  sql     SQL query to prepare.
- * @param[in]  sql_len Length of @p sql in bytes, or -1 if null-terminated.
+ * @param[in]  sql     Null-terminated SQL string.
+ * @param[in]  sql_len Length of @p sql in bytes up to the null-terminator,
+ *                     or -1 to have the library compute the string length.
  * @param[out] stmt    See @ref sqldbal_stmt.
  * @return             See @ref sqldbal_status_code.
  */
@@ -538,13 +555,13 @@ sqldbal_stmt_bind_int64(struct sqldbal_stmt *const stmt,
                         int64_t i64);
 
 /**
- * Assign a text string to a prepared statement placeholder.
+ * Assign a string to a prepared statement placeholder.
  *
  * @param[in] stmt    See @ref sqldbal_stmt.
  * @param[in] col_idx Placeholder index starting at 0.
- * @param[in] s       Text string saved to a SQL text type.
- * @param[in] slen    Length of @p s in bytes if known, or -1 if
- *                    @p s null-terminated.
+ * @param[in] s       Null-terminated string to bind.
+ * @param[in] slen    Length of @p s in bytes up to the null-terminator,
+ *                    or -1 to have the library compute the string length.
  * @return            See @ref sqldbal_status_code.
  */
 enum sqldbal_status_code
