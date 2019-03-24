@@ -9,19 +9,6 @@
  *
  * This software has been placed into the public domain using CC0.
  */
-
-/**
- * @mainpage SQLDBAL
- *
- * This section contains documentation generated directly from the source
- * code.
- *
- * To view the repository details, visit the main sqldbal page at
- * <a href='https://www.somnisoft.com/sqldbal'>
- * www.somnisoft.com/sqldbal
- * </a>.
- */
-
 #if defined(_WIN32) || defined(WIN32)
 # define SQLDBAL_IS_WINDOWS
 #endif /* SQLDBAL_IS_WINDOWS */
