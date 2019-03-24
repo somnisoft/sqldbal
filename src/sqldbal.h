@@ -286,19 +286,90 @@ struct sqldbal_db;
 
 struct sqldbal_stmt;
 
+/**
+ * Get the last error code set by the library.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_status_code_get(const struct sqldbal_db *const db);
 
+/**
+ * Clear the error code in the database handle.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       Previous error code before clearing.
+ */
 enum sqldbal_status_code
 sqldbal_status_code_clear(struct sqldbal_db *const db);
 
+/**
+ * Get the current driver type used by the database handle.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_driver.
+ */
 enum sqldbal_driver
 sqldbal_driver_type(const struct sqldbal_db *const db);
 
+/**
+ * Get a string describing the previous library function error.
+ *
+ * @param[in]  db     See @ref sqldbal_db.
+ * @param[out] errstr String describing the previous error. Do not
+ *                    modify this string.
+ * @return            See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_errstr(const struct sqldbal_db *const db,
                const char **errstr);
 
+/**
+ * Open connection with database.
+ *
+ * Driver-specific details:
+ *
+ * MariaDB/MySQL
+ *
+ * Supports the following options in @p option_list:
+ *   - CONNECT_TIMEOUT
+ *   - TLS_KEY
+ *   - TLS_CERT
+ *   - TLS_CA
+ *   - TLS_CAPATH
+ *   - TLS_CIPHER
+ *
+ * PostgreSQL
+ *
+ * Supports the following options (pq option name) in @p option_list:
+ *   - CONNECT_TIMEOUT (connect_timeout)
+ *   - TLS_MODE        (sslmode)
+ *   - TLS_CERT        (sslcert)
+ *   - TLS_KEY         (sslkey)
+ *   - TLS_CA          (sslrootcert)
+ *
+ * SQLite
+ *
+ * File path provided in the @p location parameter.
+ * Ignores the @p port, @p username, @p password, and @p database parameters.
+ * Supports the following options in @p option_list:
+ *   - VFS
+ *
+ * @param[in]  driver      See @ref sqldbal_driver.
+ * @param[in]  location    File path, host name, or IP address.
+ * @param[in]  port        Server port number to connect to.
+ * @param[in]  username    Username to use when connecting to the database.
+ * @param[in]  password    Password corresponding to @p username.
+ * @param[in]  database    Name of database to use after connecting to the
+ *                         server, or NULL if application does not
+ *                         need to initially connect to a database.
+ * @param[in]  flags       See @ref sqldbal_flag.
+ * @param[in]  option_list Pass driver-specific parameters desribed above.
+ * @param[in]  num_options Number of entries in @p option_list.
+ * @param[out] db          See @ref sqldbal_db.
+ * @return                 See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_open(enum sqldbal_driver driver,
              const char *const location,
@@ -311,89 +382,279 @@ sqldbal_open(enum sqldbal_driver driver,
              size_t num_options,
              struct sqldbal_db **db);
 
+/**
+ * Close the database handle.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_close(struct sqldbal_db *db);
 
+/**
+ * Get the driver database handle.
+ *
+ * The caller can use the returned handle in driver-specific code.
+ * Do not free the database handle directly and instead use the
+ * @ref sqldbal_close function to free the database resources.
+ *
+ * The returned type will need to get cast based on the driver type:
+ *   - MariaDB   : MYSQL *
+ *   - PostgreSQL: PGconn *
+ *   - SQLite    : sqlite3 *
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       Driver database handle.
+ */
 void *
 sqldbal_db_handle(const struct sqldbal_db *const db);
 
+/**
+ * Get the driver statement handle.
+ *
+ * The caller can use the returned handle in driver-specific code.
+ * Do not free the statement handle directly and instead use the
+ * @ref sqldbal_stmt_close function to free the statement resources.
+ *
+ * The returned type will need to get cast based on the driver type:
+ *   - MariaDB   : MYSQL_STMT *
+ *   - PostgreSQL: char *
+ *   - SQLite    : sqlite3_stmt *
+ *
+ * @param[in] stmt See @ref sqldbal_stmt.
+ * @return         Driver statement handle.
+ */
 void *
 sqldbal_stmt_handle(const struct sqldbal_stmt *const stmt);
 
+/**
+ * Start a new database transaction.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_begin_transaction(struct sqldbal_db *const db);
 
+/**
+ * End a transaction previously started by @ref sqldbal_begin_transaction.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_commit(struct sqldbal_db *const db);
 
+/**
+ * Rollback a transaction previously started by
+ * @ref sqldbal_begin_transaction.
+ *
+ * @param[in] db See @ref sqldbal_db.
+ * @return       See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_rollback(struct sqldbal_db *const db);
 
+/**
+ * Execute a SQL query directly without preparing statements.
+ *
+ * Calls the @p callback function for each row in the result set.
+ *
+ * @param[in] db        See @ref sqldbal_db.
+ * @param[in] sql       SQL query to execute.
+ * @param[in] callback  Function invoked for each result row. The application
+ *                      can set this to NULL if it does not need to process
+ *                      the results.
+ * @param[in] user_data Data to send to @p callback.
+ * @return              See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_exec(struct sqldbal_db *const db,
              const char *const sql,
              sqldbal_exec_callback_fp callback,
              void *user_data);
 
+/**
+ * Get the insert id from the last SQL insert statement.
+ *
+ * The PostgreSQL driver uses the @p name parameter. When creating tables
+ * in PostgreSQL, use the SERIAL data type and then concatenate the table name
+ * with the sequence name and add '_seq' to the end to use as the @p name
+ * parameter. For example, if you have table name 'table' and primary key
+ * sequence named 'id', then the @p name parameter would get set to
+ * "table_id_seq".
+ *
+ * @param[in]  db        See @ref sqldbal_db.
+ * @param[in]  name      Sequence name.
+ * @param[out] insert_id Last insert id.
+ * @return               See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_last_insert_id(struct sqldbal_db *const db,
                        const char *const name,
                        uint64_t *insert_id);
 
+/**
+ * Compile SQL query and return a statement handle.
+ *
+ * @param[in]  db      See @ref sqldbal_db.
+ * @param[in]  sql     SQL query to prepare.
+ * @param[in]  sql_len Length of @p sql in bytes, or -1 if null-terminated.
+ * @param[out] stmt    See @ref sqldbal_stmt.
+ * @return             See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_prepare(struct sqldbal_db *const db,
                      const char *const sql,
                      size_t sql_len,
                      struct sqldbal_stmt **stmt);
 
+/**
+ * Assign binary data to a prepared statement placeholder.
+ *
+ * @param[in] stmt    See @ref sqldbal_stmt.
+ * @param[in] col_idx Placeholder index starting at 0.
+ * @param[in] blob    Binary data saved to BLOB or BYTEA types.
+ * @param[in] blobsz  Length of @p blob in bytes.
+ * @return            See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_bind_blob(struct sqldbal_stmt *const stmt,
                        size_t col_idx,
                        const void *const blob,
                        size_t blobsz);
 
+/**
+ * Assign a 64-bit integer to a prepared statement placeholder.
+ *
+ * @param[in] stmt    See @ref sqldbal_stmt.
+ * @param[in] col_idx Placeholder index starting at 0.
+ * @param[in] i64     Integer to bind.
+ * @return            See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_bind_int64(struct sqldbal_stmt *const stmt,
                         size_t col_idx,
                         int64_t i64);
 
+/**
+ * Assign a text string to a prepared statement placeholder.
+ *
+ * @param[in] stmt    See @ref sqldbal_stmt.
+ * @param[in] col_idx Placeholder index starting at 0.
+ * @param[in] s       Text string saved to a SQL text type.
+ * @param[in] slen    Length of @p s in bytes if known, or -1 if
+ *                    @p s null-terminated.
+ * @return            See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_bind_text(struct sqldbal_stmt *const stmt,
                        size_t col_idx,
                        const char *const s,
                        size_t slen);
 
+/**
+ * Assign a NULL value to a prepared statement placeholder.
+ *
+ * @param[in] stmt    See @ref sqldbal_stmt.
+ * @param[in] col_idx Placeholder index starting at 0.
+ * @return            See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_bind_null(struct sqldbal_stmt *const stmt,
                        size_t col_idx);
 
+/**
+ * Execute a compiled statement with bound parameters.
+ *
+ * The sqldbal_stmt_bind*() routines must get set for every parameter
+ * before calling this function. A parameter only needs to get bound at
+ * least once before this call - future calls will use the previously bound
+ * parameter.
+ *
+ * @param[in] stmt See @ref sqldbal_stmt.
+ * @return         See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_execute(struct sqldbal_stmt *const stmt);
 
+/**
+ * Get the next row in the result set.
+ *
+ * After each @ref sqldbal_stmt_fetch call, the application can get the
+ * individual columns using the sqldbal_stmt_column_* routines. The
+ * return value from this function will indicate if more rows available.
+ *
+ * @param[in] stmt See @ref sqldbal_stmt.
+ * @return         See @ref sqldbal_fetch_result.
+ */
 enum sqldbal_fetch_result
 sqldbal_stmt_fetch(struct sqldbal_stmt *const stmt);
 
+/**
+ * Retrieve the result column as blob/binary data.
+ *
+ * @param[in]  stmt    See @ref sqldbal_stmt.
+ * @param[in]  col_idx Column index starting at 0.
+ * @param[out] blob    Binary data.
+ * @param[out] blobsz  Number of bytes in @p blob.
+ * @return             See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_column_blob(struct sqldbal_stmt *const stmt,
                          size_t col_idx,
                          const void **blob,
                          size_t *blobsz);
 
+/**
+ * Retrieve the result column as an integer.
+ *
+ * @param[in]  stmt    See @ref sqldbal_stmt.
+ * @param[in]  col_idx Column index starting at 0.
+ * @param[out] i64     64-bit integer value.
+ * @return             See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_column_int64(struct sqldbal_stmt *const stmt,
                           size_t col_idx,
                           int64_t *i64);
 
+/**
+ * Retrieve the result column as a string.
+ *
+ * @param[in]  stmt    See @ref sqldbal_stmt.
+ * @param[in]  col_idx Column index starting at 0.
+ * @param[out] text    Null-terminated string.
+ * @param[out] textsz  Number of bytes in @p text. The caller can set this to
+ *                     NULL if size not needed.
+ * @return             See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_column_text(struct sqldbal_stmt *const stmt,
                          size_t col_idx,
                          const char **text,
                          size_t *textsz);
 
+/**
+ * Get the column data type.
+ *
+ * @note The Mariadb and PostgreSQL drivers currently only return the null
+ *       and blob data types.
+ *
+ * @param[in] stmt    See @ref sqldbal_stmt.
+ * @param[in] col_idx Column index.
+ * @return            See @ref sqldbal_column_type.
+ */
 enum sqldbal_column_type
 sqldbal_stmt_column_type(struct sqldbal_stmt *const stmt,
                          size_t col_idx);
 
+/**
+ * Free statement resources.
+ *
+ * @param[in] stmt See @ref sqldbal_stmt.
+ * @return         See @ref sqldbal_status_code.
+ */
 enum sqldbal_status_code
 sqldbal_stmt_close(struct sqldbal_stmt *const stmt);
 
