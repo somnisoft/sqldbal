@@ -1250,7 +1250,6 @@ sqldbal_mariadb_stmt_prepare(struct sqldbal_db *const db,
                              struct sqldbal_stmt *const stmt){
   MYSQL *mysql_db;
   struct sqldbal_mariadb_stmt *mariadb_stmt;
-  size_t i;
   unsigned long num_bind_out;
 
   mysql_db = db->handle;
@@ -1297,9 +1296,9 @@ sqldbal_mariadb_stmt_prepare(struct sqldbal_db *const db,
         }
         else{
           sqldbal_mariadb_stmt_get_num_cols(db, stmt);
-          for(i = 0; i < stmt->num_params; i++){
-            mariadb_stmt->bind_out[i].buffer = NULL;
-          }
+          memset(mariadb_stmt->bind_out,
+                 0,
+                 stmt->num_params * sizeof(*mariadb_stmt->bind_out));
         }
       }
     }
