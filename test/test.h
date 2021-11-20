@@ -124,11 +124,11 @@ sqldbal_test_seam_calloc(size_t nelem,
 void *
 sqldbal_test_seam_malloc(size_t size);
 
-my_bool
+int
 sqldbal_test_seam_mysql_autocommit(MYSQL *mysql,
-                                   my_bool auto_mode);
+                                   char auto_mode);
 
-my_bool
+int
 sqldbal_test_seam_mysql_commit(MYSQL *mysql);
 
 unsigned int
@@ -142,19 +142,19 @@ sqldbal_test_seam_mysql_options(MYSQL *mysql,
                                 enum mysql_option option,
                                 const void *arg);
 
-my_bool
+int
 sqldbal_test_seam_mysql_rollback(MYSQL *mysql);
 
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_attr_set(MYSQL_STMT *stmt,
                                       enum enum_stmt_attr_type attr_type,
                                       const void *attr);
 
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_bind_param(MYSQL_STMT *stmt,
                                         MYSQL_BIND *bind);
 
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_bind_result(MYSQL_STMT *stmt,
                                          MYSQL_BIND *bind);
 

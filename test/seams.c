@@ -406,10 +406,10 @@ sqldbal_test_seam_malloc(size_t size){
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_autocommit(MYSQL *mysql,
-                                   my_bool auto_mode){
-  my_bool rc;
+                                   char auto_mode){
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_autocommit_ctr)){
     rc = 1;
@@ -427,9 +427,9 @@ sqldbal_test_seam_mysql_autocommit(MYSQL *mysql,
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_commit(MYSQL *mysql){
-  my_bool rc;
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_commit_ctr)){
     rc = 1;
@@ -513,9 +513,9 @@ sqldbal_test_seam_mysql_options(MYSQL *mysql,
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_rollback(MYSQL *mysql){
-  my_bool rc;
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_rollback_ctr)){
     rc = 1;
@@ -535,11 +535,11 @@ sqldbal_test_seam_mysql_rollback(MYSQL *mysql){
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_attr_set(MYSQL_STMT *stmt,
                                       enum enum_stmt_attr_type attr_type,
                                       const void *attr){
-  my_bool rc;
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_stmt_attr_set_ctr)){
     rc = 1;
@@ -558,10 +558,10 @@ sqldbal_test_seam_mysql_stmt_attr_set(MYSQL_STMT *stmt,
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_bind_param(MYSQL_STMT *stmt,
                                         MYSQL_BIND *bind){
-  my_bool rc;
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_stmt_bind_param_ctr)){
     rc = 1;
@@ -580,10 +580,10 @@ sqldbal_test_seam_mysql_stmt_bind_param(MYSQL_STMT *stmt,
  * @retval  0 Success.
  * @retval !0 Error occurred.
  */
-my_bool
+int
 sqldbal_test_seam_mysql_stmt_bind_result(MYSQL_STMT *stmt,
                                          MYSQL_BIND *bind){
-  my_bool rc;
+  int rc;
 
   if(sqldbal_test_seam_dec_err_ctr(&g_sqldbal_err_mysql_stmt_bind_result_ctr)){
     rc = 1;

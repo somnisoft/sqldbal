@@ -791,7 +791,7 @@ struct sqldbal_mariadb_stmt{
   /**
    * Null value flag for corresponding entry in @ref bind_in_list.
    */
-  my_bool *bind_in_null_list;
+  char *bind_in_null_list;
 };
 
 /**
@@ -1536,7 +1536,7 @@ sqldbal_mariadb_stmt_allocate_bind_in_list(struct sqldbal_stmt *const stmt,
 static void
 sqldbal_mariadb_stmt_execute(struct sqldbal_stmt *const stmt){
   struct sqldbal_mariadb_stmt *mariadb_stmt;
-  my_bool update_max_length;
+  char update_max_length;
   MYSQL_RES *metadata;
 
   mariadb_stmt = stmt->handle;
