@@ -64,6 +64,7 @@ int main(void){
   assert(rc == SQLDBAL_STATUS_OK);
   rc = sqldbal_close(db);
   assert(rc == SQLDBAL_STATUS_OK);
+  assert(remove(LOCATION) == 0);
   return 0;
 }
 
