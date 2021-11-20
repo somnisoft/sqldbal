@@ -4246,6 +4246,7 @@ sqldbal_open(enum sqldbal_driver driver,
              struct sqldbal_db **db){
   struct sqldbal_db *new_db;
   struct sqldbal_driver_functions *func;
+  int found_driver;
 
   new_db = malloc(sizeof(*new_db));
   if(new_db == NULL){
@@ -4262,10 +4263,11 @@ sqldbal_open(enum sqldbal_driver driver,
     new_db->handle = NULL;
 
     func = &new_db->functions;
-    switch(driver){
+    found_driver = 0;
 #ifdef SQLDBAL_MARIADB
-    case SQLDBAL_DRIVER_MARIADB:
-    case SQLDBAL_DRIVER_MYSQL:
+    if(driver == SQLDBAL_DRIVER_MARIADB ||
+       driver == SQLDBAL_DRIVER_MYSQL){
+      found_driver = 1;
       func->sqldbal_fp_open              = sqldbal_mariadb_open;
       func->sqldbal_fp_close             = sqldbal_mariadb_close;
       func->sqldbal_fp_db_handle         = sqldbal_mariadb_db_handle;
@@ -4287,10 +4289,11 @@ sqldbal_open(enum sqldbal_driver driver,
       func->sqldbal_fp_stmt_column_text  = sqldbal_mariadb_stmt_column_text;
       func->sqldbal_fp_stmt_column_type  = sqldbal_mariadb_stmt_column_type;
       func->sqldbal_fp_stmt_close        = sqldbal_mariadb_stmt_close;
-      break;
+    }
 #endif /* SQLDBAL_MARIADB */
 #ifdef SQLDBAL_POSTGRESQL
-    case SQLDBAL_DRIVER_POSTGRESQL:
+    if(driver == SQLDBAL_DRIVER_POSTGRESQL){
+      found_driver = 1;
       func->sqldbal_fp_open              = sqldbal_pq_open;
       func->sqldbal_fp_close             = sqldbal_pq_close;
       func->sqldbal_fp_db_handle         = sqldbal_pq_db_handle;
@@ -4312,10 +4315,11 @@ sqldbal_open(enum sqldbal_driver driver,
       func->sqldbal_fp_stmt_column_text  = sqldbal_pq_stmt_column_text;
       func->sqldbal_fp_stmt_column_type  = sqldbal_pq_stmt_column_type;
       func->sqldbal_fp_stmt_close        = sqldbal_pq_stmt_close;
-      break;
+    }
 #endif /* SQLDBAL_POSTGRESQL */
 #ifdef SQLDBAL_SQLITE
-    case SQLDBAL_DRIVER_SQLITE:
+    if(driver == SQLDBAL_DRIVER_SQLITE){
+      found_driver = 1;
       func->sqldbal_fp_open              = sqldbal_sqlite_open;
       func->sqldbal_fp_close             = sqldbal_sqlite_close;
       func->sqldbal_fp_db_handle         = sqldbal_sqlite_db_handle;
@@ -4337,15 +4341,13 @@ sqldbal_open(enum sqldbal_driver driver,
       func->sqldbal_fp_stmt_column_text  = sqldbal_sqlite_stmt_column_text;
       func->sqldbal_fp_stmt_column_type  = sqldbal_sqlite_stmt_column_type;
       func->sqldbal_fp_stmt_close        = sqldbal_sqlite_stmt_close;
-      break;
-#endif /* SQLDBAL_SQLITE */
-    case SQLDBAL_DRIVER_INVALID:
-    default:
-      sqldbal_status_code_set(new_db, SQLDBAL_STATUS_DRIVER_NOSUPPORT);
-      break;
     }
+#endif /* SQLDBAL_SQLITE */
 
-    if(sqldbal_status_code_get(new_db) == SQLDBAL_STATUS_OK){
+    if(!found_driver){
+      sqldbal_status_code_set(new_db, SQLDBAL_STATUS_DRIVER_NOSUPPORT);
+    }
+    else{
       new_db->functions.sqldbal_fp_open(new_db,
                                         location,
                                         port,

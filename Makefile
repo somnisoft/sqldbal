@@ -37,7 +37,6 @@ CWARN += -Winit-self
 CWARN += -Winline
 CWARN += -Winvalid-pch
 CWARN += -Wlarger-than=10000
-CWARN += -Wlong-long
 CWARN += -Wmissing-declarations
 CWARN += -Wmissing-include-dirs
 CWARN += -Wmissing-prototypes
@@ -58,10 +57,6 @@ CWARN += -Wunknown-pragmas
 CWARN += -Wunused-parameter
 CWARN += -Wvla
 CWARN += -Wwrite-strings
-
-CWARN += -Wno-long-long
-CWARN += -Wno-covered-switch-default
-CWARN += -Wno-switch-enum
 
 CWARN.gcc += $(CWARN)
 CWARN.gcc += -Wjump-misses-init
@@ -107,8 +102,6 @@ CFLAGS.clang   += -fsanitize=undefined
 CFLAGS.release += $(CFLAGS)
 CFLAGS.debug   += $(CWARN.gcc)
 CFLAGS.release += -O3
-
-CFLAGS.test += -Wno-padded
 
 LFLAGS += -L/usr/lib/x86_64-linux-gnu
 
@@ -235,7 +228,7 @@ $(BDIR)/debug/clang_sqldbal.o: src/sqldbal.c | $(BDIR)
 	$(COMPILE.c.clang)
 
 $(BDIR)/debug/clang_test.o: test/test.c | $(BDIR)
-	$(COMPILE.c.clang) $(CFLAGS.test) $(CDEF_POSIX)
+	$(COMPILE.c.clang) $(CFLAGS.test) $(CDEF_POSIX) -Wno-padded
 
 $(BDIR)/debug/clang_config.o: test/config.c | $(BDIR)
 	$(COMPILE.c.clang) $(CDEF_POSIX)

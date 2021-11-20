@@ -1316,7 +1316,9 @@ sqldbal_functional_test_prepared_select(void){
   /*
    * The PostgreSQL and MariaDB drivers return BLOB data type.
    */
-  if(driver == SQLDBAL_DRIVER_MARIADB || driver == SQLDBAL_DRIVER_POSTGRESQL){
+  if(driver == SQLDBAL_DRIVER_MARIADB ||
+     driver == SQLDBAL_DRIVER_MYSQL ||
+     driver == SQLDBAL_DRIVER_POSTGRESQL){
     expect_type = SQLDBAL_TYPE_BLOB;
   }
   else{
@@ -1516,7 +1518,8 @@ sqldbal_functional_test_handles(void){
   assert(g_rc == SQLDBAL_STATUS_OK);
   stmt_handle = sqldbal_stmt_handle(g_stmt);
 
-  if(driver == SQLDBAL_DRIVER_MARIADB){
+  if(driver == SQLDBAL_DRIVER_MARIADB ||
+     driver == SQLDBAL_DRIVER_MYSQL){
     mysql_db = db_handle;
     mysql_stmt = stmt_handle;
 
@@ -1836,6 +1839,23 @@ sqldbal_test_open(enum sqldbal_driver driver,
   assert(g_rc == expect_status);
   g_rc = sqldbal_close(g_db);
   assert(g_rc == expect_status);
+}
+
+/**
+ * Basic test using SQLDBAL_DRIVER_MYSQL.
+ */
+static void
+sqldbal_functional_test_alternate_driver(void){
+  sqldbal_test_open(SQLDBAL_DRIVER_MYSQL,
+                    g_db_config_list[0].location,
+                    g_db_config_list[0].port,
+                    g_db_config_list[0].username,
+                    g_db_config_list[0].password,
+                    g_db_config_list[0].database,
+                    g_db_config_list[0].flags,
+                    0,
+                    NULL,
+                    SQLDBAL_STATUS_OK);
 }
 
 /**
@@ -3779,6 +3799,7 @@ sqldbal_functional_test_all(void){
                                 &g_db_config_list[2]);
 
   sqldbal_functional_test_db_list();
+  sqldbal_functional_test_alternate_driver();
   sqldbal_functional_test_encryption();
   sqldbal_functional_test_timeout();
   sqldbal_functional_test_debug();
