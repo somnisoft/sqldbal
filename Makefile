@@ -89,8 +89,8 @@ CFLAGS += -DSQLDBAL_MARIADB
 CFLAGS += -DSQLDBAL_POSTGRESQL
 CFLAGS += -DSQLDBAL_SQLITE
 CFLAGS += -Isrc
-CFLAGS += -I/usr/include/mysql
-CFLAGS += -isystem /usr/include/mysql
+CFLAGS += -I/usr/include/mariadb
+CFLAGS += -isystem /usr/include/mariadb
 CFLAGS += -I/usr/include/postgresql
 
 CFLAGS.debug   += $(CFLAGS)
