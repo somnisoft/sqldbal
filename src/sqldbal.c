@@ -45,21 +45,6 @@
 #endif /* SQLDBAL_TEST */
 
 /**
- * Highest port number available.
- */
-#define SQLDBAL_MAX_PORT_NUMBER 65535
-
-/**
- * Maximum buffer size for 64-bit signed integer.
- *
- * Minimum 64-bit integer:
- * -9223372036854775808
- * 123456789012345678901
- *         10        20 -> 21 bytes
- */
-#define MAX_I64_STR_SZ 21
-
-/**
  * Prepared statement compiled by the driver.
  */
 struct sqldbal_stmt{
@@ -758,6 +743,11 @@ sqldbal_err_set(struct sqldbal_db *const db,
  */
 # define SQLDBAL_MARIADB_HAS_SSL
 #endif /* MYSQL_VERSION_ID >= 50600 */
+
+/**
+ * Highest port number available.
+ */
+#define SQLDBAL_MAX_PORT_NUMBER 65535
 
 /**
  * Maximum number of seconds allowed in the CONNECT_TIMEOUT option.
@@ -1753,6 +1743,16 @@ sqldbal_mariadb_stmt_close(struct sqldbal_stmt *const stmt){
 
 #include <libpq-fe.h>
 #include <pg_config.h>
+
+/**
+ * Maximum buffer size for 64-bit signed integer.
+ *
+ * Minimum 64-bit integer:
+ * -9223372036854775808
+ * 123456789012345678901
+ *         10        20 -> 21 bytes
+ */
+#define MAX_I64_STR_SZ 21
 
 #if PG_VERSION_NUM >= 90600
 /**
