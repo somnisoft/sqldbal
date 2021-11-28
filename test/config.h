@@ -58,7 +58,7 @@ struct sqldbal_test_db_config{
   /**
    * See @ref sqldbal_flag.
    */
-  enum sqldbal_flag flags;
+  unsigned long flags;
 };
 
 void

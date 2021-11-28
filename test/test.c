@@ -1822,7 +1822,7 @@ sqldbal_test_open(enum sqldbal_driver driver,
                   const char *const username,
                   const char *const password,
                   const char *const database,
-                  enum sqldbal_flag flags,
+                  const unsigned long flags,
                   size_t num_options,
                   const struct sqldbal_driver_option *const option_list,
                   enum sqldbal_status_code expect_status){

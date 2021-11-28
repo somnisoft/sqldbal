@@ -32,42 +32,55 @@
 #endif /* no drivers defined */
 
 /**
+ * @defgroup sqldbal_flag
+ *
  * Special flags for the @ref sqldbal_db context.
  */
-enum sqldbal_flag{
-  /**
-   * No flag.
-   */
-  SQLDBAL_FLAG_NONE                  = 0,
 
-  /**
-   * Print debug/tracing information to stderr.
-   */
-  SQLDBAL_FLAG_DEBUG                 = 1 << 0,
+/**
+ * @ingroup sqldbal_flag
+ *
+ * No flag.
+ */
+#define SQLDBAL_FLAG_NONE                  (0)
+
+/**
+ * @ingroup sqldbal_flag
+ *
+ * Print debug/tracing information to stderr.
+ */
+#define SQLDBAL_FLAG_DEBUG                 (1 << 0)
 
 #ifdef SQLDBAL_SQLITE
-  /**
-   * Open the SQLite database in read mode.
-   */
-  SQLDBAL_FLAG_SQLITE_OPEN_READONLY  = 1 << 16,
+/**
+ * @ingroup sqldbal_flag
+ *
+ * Open the SQLite database in read mode.
+ */
+#define SQLDBAL_FLAG_SQLITE_OPEN_READONLY  (1 << 16)
 
-  /**
-   * Open the SQLite database in read/write mode.
-   */
-  SQLDBAL_FLAG_SQLITE_OPEN_READWRITE = 1 << 17,
+/**
+ * @ingroup sqldbal_flag
+ *
+ * Open the SQLite database in read/write mode.
+ */
+#define SQLDBAL_FLAG_SQLITE_OPEN_READWRITE (1 << 17)
 
-  /**
-   * Create the SQLite database if it does not exist yet.
-   */
-  SQLDBAL_FLAG_SQLITE_OPEN_CREATE    = 1 << 18,
+/**
+ * @ingroup sqldbal_flag
+ *
+ * Create the SQLite database if it does not exist yet.
+ */
+#define SQLDBAL_FLAG_SQLITE_OPEN_CREATE    (1 << 18)
 #endif /* SQLDBAL_SQLITE */
 
-  /**
-   * Special flag for the database context used to determine if the
-   * initial memory allocation failed.
-   */
-  SQLDBAL_FLAG_INVALID_MEMORY        = 1 << 30
-};
+/**
+ * @ingroup sqldbal_flag
+ *
+ * Special flag for the database context used to determine if the
+ * initial memory allocation failed.
+ */
+#define SQLDBAL_FLAG_INVALID_MEMORY        (1 << 30)
 
 /**
  * SQL drivers available to use in this library.
@@ -393,7 +406,7 @@ sqldbal_open(enum sqldbal_driver driver,
              const char *const username,
              const char *const password,
              const char *const database,
-             enum sqldbal_flag flags,
+             const unsigned long flags,
              const struct sqldbal_driver_option *const option_list,
              size_t num_options,
              struct sqldbal_db **db);

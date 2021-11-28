@@ -281,11 +281,6 @@ struct sqldbal_db{
   enum sqldbal_status_code status_code;
 
   /**
-   * See @ref sqldbal_flag.
-   */
-  enum sqldbal_flag flags;
-
-  /**
    * SQL database driver in use.
    *
    * See @ref sqldbal_driver.
@@ -293,9 +288,9 @@ struct sqldbal_db{
   enum sqldbal_driver type;
 
   /**
-   * Padding structure to align.
+   * See @ref sqldbal_flag.
    */
-  char pad[4];
+  unsigned long flags;
 };
 
 /**
@@ -4228,9 +4223,8 @@ static struct sqldbal_db g_db_error = {
     NULL,                      /* sqldbal_fp_stmt_close        */
   },                           /* functions                    */
   SQLDBAL_STATUS_NOMEM,        /* status_code                  */
-  SQLDBAL_FLAG_INVALID_MEMORY, /* flags                        */
   SQLDBAL_DRIVER_INVALID,      /* type                         */
-  {0}                          /* pad                          */
+  SQLDBAL_FLAG_INVALID_MEMORY  /* flags                        */
 };
 
 enum sqldbal_status_code
@@ -4240,7 +4234,7 @@ sqldbal_open(enum sqldbal_driver driver,
              const char *const username,
              const char *const password,
              const char *const database,
-             enum sqldbal_flag flags,
+             const unsigned long flags,
              const struct sqldbal_driver_option *const option_list,
              size_t num_options,
              struct sqldbal_db **db){
